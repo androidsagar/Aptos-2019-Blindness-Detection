@@ -7,18 +7,11 @@ import os
 from multiprocessing import Pool
 from PIL import Image
 import csv
-
-train_csv = "data/train.csv"
-test_csv = "data/test.csv"
-
-base_size = 512
-
-old_dir = "data/test_images/"
-new_dir = "data/test_images_512/"
+from constants import *
 
 
 def resize_image(file_name):
-    img = Image.open(old_dir + file_name)
+    img = Image.open(train_images + file_name)
     if img.size[0] < img.size[1]:
         pct = base_size / img.size[0]
     else:
@@ -28,7 +21,7 @@ def resize_image(file_name):
     img = img.resize((new_w, new_h), Image.LANCZOS)
     new_file_name = file_name_with_label(file_name)
     print(new_file_name)
-    img.save(new_dir + new_file_name)
+    img.save(train_images_512 + new_file_name)
 
 
 def find_label(i):
@@ -45,11 +38,13 @@ def file_name_with_label(file_name):
     return new_name
 
 
+with open(train_csv, 'r') as infile:
+    data = [dict(i) for i in csv.DictReader(infile)]
+
+
 if __name__ == "__main__":
-    if not os.path.exists(new_dir):
-        os.makedirs(new_dir)
-    with open(test_csv, 'r') as infile:
-        data = [dict(i) for i in csv.DictReader(infile)]
-    files = os.listdir(old_dir)
+    if not os.path.exists(train_images_512):
+        os.makedirs(train_images_512)
+    files = os.listdir(train_images)
     p = Pool(4)
     p.map(resize_image, files)
